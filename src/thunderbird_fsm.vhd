@@ -86,9 +86,9 @@ library ieee;
   use ieee.numeric_std.all;
  
 entity thunderbird_fsm is 
-  port(
+--  port(
 	
-  );
+--  );
 end thunderbird_fsm;
 
 architecture thunderbird_fsm_arch of thunderbird_fsm is 

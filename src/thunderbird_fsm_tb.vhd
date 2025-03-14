@@ -57,9 +57,9 @@ end thunderbird_fsm_tb;
 architecture test_bench of thunderbird_fsm_tb is 
 	
 	component thunderbird_fsm is 
-	  port(
+--	  port(
 		
-	  );
+--	  );
 	end component thunderbird_fsm;
 
 	-- test I/O signals

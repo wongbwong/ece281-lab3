@@ -13,11 +13,7 @@
 
 # don't ignore hardware description files
 !src/
-!src/**/
-!src/**/*.vhd
-!src/**/*.xdc
-!src/**/*.bd
-!src/**/*.bit
+!src/**
 
 # or configuration files
 !cfg/

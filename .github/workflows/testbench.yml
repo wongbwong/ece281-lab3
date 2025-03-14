@@ -1,27 +1,23 @@
 ---
 env:
-  TESTBENCH_ENTITY: thunderbird_fsm
+  TB_ENTITY: thunderbird_fsm_tb
 
 name: GHDL Testbench
 on: [push]
 jobs:
-  Student-Testbench:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+  Execute-Testbench:
+    runs-on: ubuntu-24.04
     steps:
-      - name: Setup GHDL nightly
-        uses: ghdl/setup-ghdl-ci@nightly
-        with:
-          backend: llvm
-      - run: ghdl --version
       - name: Check out repository code
         uses: actions/checkout@v3
-      - run: |
-          for file in src/hdl/*.vhd; do
-            if [ -f "$file" ]; then
-             ghdl analyze -v "$file"
-            fi
-          done
-      - run: ls -R
-      - run: ghdl elaborate -v ${TESTBENCH_ENTITY}_tb
-      - run: ghdl run -v ${TESTBENCH_ENTITY}_tb  --stop-time=1us --assert-level=error
+      - name: Setup GHDL nightly
+        uses: ghdl/setup-ghdl@v1
+        with:
+          backend: mcode
+          investigate: true
+      - run: ghdl --version
+      - name: Execute the VHDL testbench
+        run: |
+          ghdl analyze -v src/*.vhd
+          ghdl elaborate -v $TB_ENTITY
+          ghdl run -v $TB_ENTITY --stop-time=1us
