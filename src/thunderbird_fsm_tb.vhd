@@ -57,19 +57,77 @@ end thunderbird_fsm_tb;
 architecture test_bench of thunderbird_fsm_tb is 
 	
 	component thunderbird_fsm is 
---	  port(
-		
---	  );
+        port (
+            i_clk, i_reset  : in    std_logic;
+            i_left, i_right : in    std_logic;
+            o_lights_L      : out   std_logic_vector(2 downto 0);
+            o_lights_R      : out   std_logic_vector(2 downto 0)
+        );
 	end component thunderbird_fsm;
 
 	-- test I/O signals
-	
+	constant k_clk_period : time := 10 ns;
+    signal clk            : std_logic := '0';
+    signal reset          : std_logic := '0';
+    signal left, right    : std_logic := '0';
+    signal lights_L       : std_logic_vector(2 downto 0);
+    signal lights_R       : std_logic_vector(2 downto 0);
 	-- constants
 	
 	
 begin
 	-- PORT MAPS ----------------------------------------
-	
+	uut : thunderbird_fsm
+        port map (
+            i_clk    => clk,
+            i_reset  => reset,
+            i_left   => left,
+            i_right  => right,
+            o_lights_L => lights_L,
+            o_lights_R => lights_R
+        );
+
+    clk_process : process
+    begin
+        while true loop
+            clk <= '0';
+            wait for k_clk_period/2;
+            clk <= '1';
+            wait for k_clk_period/2;
+        end loop;
+    end process;
+
+    -- Test Process
+    test_process : process
+    begin
+        -- Resets the lights
+        reset <= '1';
+        wait for k_clk_period * 2;
+        reset <= '0';
+        wait for k_clk_period * 2;
+        
+        -- Left signal
+        left <= '1';
+        wait for k_clk_period * 10;
+        left <= '0';
+        wait for k_clk_period * 5;
+        
+        -- Right signal
+        right <= '1';
+        wait for k_clk_period * 10;
+        right <= '0';
+        wait for k_clk_period * 5;
+        
+        -- Both on (hazard lights)
+        left <= '1';
+        right <= '1';
+        wait for k_clk_period * 10;
+        left <= '0';
+        right <= '0';
+        wait for k_clk_period * 5;
+
+        wait;
+    end process;
 	-----------------------------------------------------
 	
 	-- PROCESSES ----------------------------------------	

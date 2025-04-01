@@ -81,28 +81,139 @@
 --|    s_<signal name>          = state name
 --|
 --+----------------------------------------------------------------------------
+
+-----------------------
+--| One-Hot State Encoding key
+--| --------------------
+--| State | Encoding
+--| --------------------
+--| OFF   | 10000000
+--| ON    | 01000000
+--| R1    | 00100000
+--| R2    | 00010000
+--| R3    | 00001000
+--| L1    | 00000100
+--| L2    | 00000010
+--| L3    | 00000001
+--| --------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
  
-entity thunderbird_fsm is 
---  port(
-	
---  );
+entity thunderbird_fsm is
+    port (
+        i_clk, i_reset  : in    std_logic;
+        i_left, i_right : in    std_logic;
+        o_lights_L      : out   std_logic_vector(2 downto 0);
+        o_lights_R      : out   std_logic_vector(2 downto 0)
+    );
 end thunderbird_fsm;
 
 architecture thunderbird_fsm_arch of thunderbird_fsm is 
 
--- CONSTANTS ------------------------------------------------------------------
-  
+    type state_type is (ST_OFF, ST_ON, ST_R1, ST_R2, ST_R3, ST_L1, ST_L2, ST_L3);
+    signal current_state, next_state : state_type;
+
+    signal l_wire : std_logic_vector(2 downto 0);
+    signal r_wire : std_logic_vector(2 downto 0);
+
 begin
 
-	-- CONCURRENT STATEMENTS --------------------------------------------------------	
-	
-    ---------------------------------------------------------------------------------
-	
-	-- PROCESSES --------------------------------------------------------------------
-    
-	-----------------------------------------------------					   
-				  
+
+    process (i_clk, i_reset)
+    begin
+        if i_reset = '1' then
+            current_state <= ST_OFF;
+        elsif rising_edge(i_clk) then
+            current_state <= next_state;
+        end if;
+    end process;
+
+
+
+    process (current_state, i_left, i_right)
+    begin
+        case current_state is
+            when ST_OFF =>
+                if i_left = '1' and i_right = '0' then
+                    next_state <= ST_L1;
+                elsif i_right = '1' and i_left = '0' then
+                    next_state <= ST_R1;
+                elsif i_left = '1' and i_right = '1' then
+                    next_state <= ST_ON;
+                else
+                    next_state <= ST_OFF;
+                end if;
+
+            when ST_ON =>
+                next_state <= ST_OFF;
+
+            when ST_R1 =>
+                next_state <= ST_R2;
+
+            when ST_R2 =>
+                next_state <= ST_R3;
+
+            when ST_R3 =>
+                next_state <= ST_OFF;
+
+            when ST_L1 =>
+                next_state <= ST_L2;
+
+            when ST_L2 =>
+                next_state <= ST_L3;
+
+            when ST_L3 =>
+                next_state <= ST_OFF;
+
+            when others =>
+                next_state <= ST_OFF;
+        end case;
+    end process;
+
+
+    process (current_state)
+    begin
+
+        l_wire <= "000";
+        r_wire <= "000";
+
+        case current_state is
+            when ST_OFF =>
+                l_wire <= "000";
+                r_wire <= "000";
+
+            when ST_ON =>
+                l_wire <= "111";
+                r_wire <= "111";
+
+            when ST_R1 =>
+                r_wire <= "001";
+
+            when ST_R2 =>
+                r_wire <= "011";
+
+            when ST_R3 =>
+                r_wire <= "111";
+
+            when ST_L1 =>
+                l_wire <= "001";
+
+            when ST_L2 =>
+                l_wire <= "011";
+
+            when ST_L3 =>
+                l_wire <= "111";
+
+            when others =>
+                l_wire <= "000";
+                r_wire <= "000";
+        end case;
+    end process;
+
+
+
+    o_lights_L <= l_wire;
+    o_lights_R <= r_wire;
+
 end thunderbird_fsm_arch;
