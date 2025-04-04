@@ -70,8 +70,8 @@ architecture test_bench of thunderbird_fsm_tb is
     signal clk            : std_logic := '0';
     signal reset          : std_logic := '0';
     signal left, right    : std_logic := '0';
-    signal lights_L       : std_logic_vector(2 downto 0);
-    signal lights_R       : std_logic_vector(2 downto 0);
+    signal lights_L       : std_logic_vector(2 downto 0) := "000";
+    signal lights_R       : std_logic_vector(2 downto 0) := "000";
 	-- constants
 	
 	
@@ -87,47 +87,64 @@ begin
             o_lights_R => lights_R
         );
 
+    -- Clock Process
     clk_process : process
-    begin
-        while true loop
-            clk <= '0';
-            wait for k_clk_period/2;
-            clk <= '1';
-            wait for k_clk_period/2;
-        end loop;
+    begin 
+        clk <= '0';
+        wait for k_clk_period/2;
+        clk <= '1';
+        wait for k_clk_period/2;
     end process;
 
-    -- Test Process
+        -- Test Process
     test_process : process
     begin
-        -- Resets the lights
+        -- reset
         reset <= '1';
         wait for k_clk_period * 2;
         reset <= '0';
         wait for k_clk_period * 2;
         
-        -- Left signal
-        left <= '1';
-        wait for k_clk_period * 10;
-        left <= '0';
-        wait for k_clk_period * 5;
-        
-        -- Right signal
-        right <= '1';
-        wait for k_clk_period * 10;
-        right <= '0';
-        wait for k_clk_period * 5;
-        
-        -- Both on (hazard lights)
-        left <= '1';
-        right <= '1';
-        wait for k_clk_period * 10;
-        left <= '0';
-        right <= '0';
-        wait for k_clk_period * 5;
+        -- off
+        assert (lights_L = "000" and lights_R = "000")
+            report "ERROR: Lights not off after reset"
+            severity failure;
 
+        -- left
+        left <= '1';
+        wait for k_clk_period * 10;
+        
+        assert (lights_L /= "000")
+            report "ERROR: Left lights did not turn on"
+            severity failure;
+
+        left <= '0';
+        wait for k_clk_period * 5;
+        
+        -- right
+        right <= '1';
+        wait for k_clk_period * 10;
+
+        assert (lights_R /= "000")
+            report "ERROR: Right lights did not turn on"
+            severity failure;
+
+        right <= '0';
+        wait for k_clk_period * 5;
+        
+        -- hazard (both on)
+        left <= '1';
+        right <= '1';
+        wait for k_clk_period * 10;
+
+        left <= '0';
+        right <= '0';
+        wait for k_clk_period * 5;
+        
+        -- End simulation
         wait;
     end process;
+
 	-----------------------------------------------------
 	
 	-- PROCESSES ----------------------------------------	
